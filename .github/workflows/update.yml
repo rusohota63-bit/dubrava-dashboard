@@ -1,0 +1,38 @@
+name: Update dashboard data
+
+on:
+  schedule:
+    - cron: "0 6,14 * * *"   # 09:00 и 17:00 МСК
+  workflow_dispatch: {}        # кнопка «обновить сейчас»
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: Fetch Direct data
+        env:
+          YANDEX_DIRECT_TOKEN: ${{ secrets.YANDEX_DIRECT_TOKEN }}
+        run: python fetch_data.py
+      - name: Commit if changed
+        run: |
+          git config user.name "dashboard-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data.json
+          if git diff --staged --quiet; then
+            echo "Нет изменений в данных"
+          else
+            git commit -m "data: автообновление"
+            git push
+          fi
