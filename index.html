@@ -23,8 +23,9 @@ body{padding:32px 24px 64px;max-width:1180px;margin:0 auto}
 .head h1{font-size:26px;font-weight:700;letter-spacing:-.02em}
 .head h1 span{color:var(--accent)}
 .tagline{font-family:Caveat,cursive;font-size:21px;color:var(--muted);margin-top:2px}
-.period{font-size:13px;color:var(--muted);text-align:right;line-height:1.5}
+.period{font-size:13px;color:var(--muted);text-align:right;line-height:1.6}
 .period b{color:var(--text);font-weight:600}
+.period .upd{color:var(--green);font-weight:500}
 
 .filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
 .chip{background:var(--surface);border:1px solid var(--line);color:var(--muted);
@@ -32,7 +33,6 @@ body{padding:32px 24px 64px;max-width:1180px;margin:0 auto}
   font-family:inherit;transition:.15s}
 .chip:hover{color:var(--text);border-color:#52443f}
 .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
-.chip.on.warm{background:var(--warm);border-color:var(--warm);color:#241a12}
 
 .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:24px}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 16px 18px}
@@ -51,26 +51,21 @@ body{padding:32px 24px 64px;max-width:1180px;margin:0 auto}
 .seg button.on{background:var(--surface2);color:var(--text)}
 .chart-wrap{height:320px;position:relative}
 
-/* alerts */
 .alerts{display:flex;flex-direction:column;gap:8px}
 .alert{display:flex;gap:12px;align-items:flex-start;background:var(--bg);border:1px solid var(--line);
   border-left-width:3px;border-radius:10px;padding:12px 14px}
-.alert.red{border-left-color:var(--red)}
-.alert.amber{border-left-color:var(--amber)}
-.alert.info{border-left-color:var(--accent)}
-.alert.ok{border-left-color:var(--green)}
+.alert.red{border-left-color:var(--red)} .alert.amber{border-left-color:var(--amber)}
+.alert.info{border-left-color:var(--accent)} .alert.ok{border-left-color:var(--green)}
 .alert .ico{font-size:15px;line-height:1.4;flex-shrink:0}
 .alert .body{font-size:13px;line-height:1.5}
 .alert .body .t{font-weight:600}
 .alert .body .d{color:var(--muted);margin-top:2px}
 .alert .meta{margin-left:auto;text-align:right;font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0}
 .alert .meta .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle}
-.dot-blue{background:var(--accent)} .dot-warm{background:var(--warm)}
 
 .cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
 @media(max-width:720px){.cmp{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}}
 .cmp .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;border-left:3px solid var(--accent)}
-.cmp .card.warm{border-left-color:var(--warm)}
 .cmp .card .nm{font-size:14px;font-weight:600;margin-bottom:14px}
 .cmp .row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--line)}
 .cmp .row:last-child{border-bottom:none}
@@ -87,6 +82,7 @@ td:first-child,th:first-child{text-align:left}
 
 .note{font-size:12px;color:var(--muted);line-height:1.6;border-left:2px solid var(--warm);padding-left:12px;margin-top:6px}
 .foot{font-size:11.5px;color:var(--muted);text-align:center;margin-top:32px;line-height:1.6}
+.state{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:40px;text-align:center;color:var(--muted);font-size:14px;line-height:1.6}
 </style>
 </head>
 <body>
@@ -96,131 +92,107 @@ td:first-child,th:first-child{text-align:left}
     <h1>Дубрава <span>·</span> Директ</h1>
     <div class="tagline">сложное внутри, простое снаружи</div>
   </div>
-  <div class="period">Период<br><b id="periodLabel">—</b></div>
+  <div class="period">Период<br><b id="periodLabel">—</b><br><span class="upd" id="updLabel"></span></div>
 </div>
 
-<div class="filters" id="filters"></div>
-
-<div class="kpis" id="kpis"></div>
-
-<div class="panel">
-  <div class="panel-head"><h2>Тревоги <span class="cnt" id="alertCnt"></span></h2></div>
-  <div class="alerts" id="alerts"></div>
-</div>
-
-<div class="panel">
-  <div class="panel-head">
-    <h2>По дням</h2>
-    <div class="seg" id="metricSeg"></div>
-  </div>
-  <div class="chart-wrap"><canvas id="chart"></canvas></div>
-</div>
-
-<div class="cmp" id="cmp"></div>
-
-<div class="panel">
-  <div class="panel-head"><h2>Дневная таблица</h2></div>
-  <div class="tbl-scroll">
-    <table>
-      <thead><tr>
-        <th>Кампания</th><th>День</th><th>Показы</th><th>Клики</th>
-        <th>Расход ₽</th><th>Конв.</th><th>CR %</th><th>CPA ₽</th>
-      </tr></thead>
-      <tbody id="tbody"></tbody>
-    </table>
-  </div>
-  <div class="note">CPA подсвечивается относительно медианы своей кампании: красным — заметно дороже обычного дня, зелёным — дешевле.</div>
+<div id="app">
+  <div class="state" id="loadState">Загрузка данных…</div>
 </div>
 
 <div class="foot">
-  Снимок из выгрузки Директа от 28.06.2026. Конверсии «Летних будней» — это в основном клик по кнопке брони TravelLine, а не завершённая бронь, поэтому их CPA так низок.<br>
-  Когда одобрят доступ к API, штурман будет обновлять эти данные сам.
+  Данные тянутся из API Директа за последние 90 дней и обновляются по расписанию.<br>
+  Конверсии «Летних будней» — это в основном клик по кнопке брони TravelLine, а не завершённая бронь, поэтому их CPA так низок.
 </div>
 
 <script>
-const DATA = [{"c": "Летние будни", "id": "709365069", "d": "01.06.2026", "shows": 9934, "clicks": 268, "cost": 1269.04, "conv": 256, "cr": 95.52, "cpa": 4.96}, {"c": "Летние будни", "id": "709365069", "d": "02.06.2026", "shows": 9082, "clicks": 245, "cost": 1144.73, "conv": 218, "cr": 88.98, "cpa": 5.25}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "02.06.2026", "shows": 1526, "clicks": 65, "cost": 323.26, "conv": 8, "cr": 12.31, "cpa": 40.41}, {"c": "Летние будни", "id": "709365069", "d": "03.06.2026", "shows": 1773, "clicks": 93, "cost": 311.28, "conv": 81, "cr": 87.1, "cpa": 3.84}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "03.06.2026", "shows": 1797, "clicks": 75, "cost": 484.03, "conv": 9, "cr": 12.0, "cpa": 53.78}, {"c": "Летние будни", "id": "709365069", "d": "04.06.2026", "shows": 7332, "clicks": 167, "cost": 748.71, "conv": 149, "cr": 89.22, "cpa": 5.02}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "04.06.2026", "shows": 3662, "clicks": 103, "cost": 782.95, "conv": 21, "cr": 20.39, "cpa": 37.28}, {"c": "Летние будни", "id": "709365069", "d": "05.06.2026", "shows": 9429, "clicks": 207, "cost": 853.35, "conv": 199, "cr": 96.14, "cpa": 4.29}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "05.06.2026", "shows": 8961, "clicks": 121, "cost": 1165.93, "conv": 20, "cr": 16.53, "cpa": 58.3}, {"c": "Летние будни", "id": "709365069", "d": "06.06.2026", "shows": 6380, "clicks": 207, "cost": 1042.02, "conv": 183, "cr": 88.41, "cpa": 5.69}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "06.06.2026", "shows": 3294, "clicks": 83, "cost": 393.45, "conv": 13, "cr": 15.66, "cpa": 30.27}, {"c": "Летние будни", "id": "709365069", "d": "07.06.2026", "shows": 6644, "clicks": 255, "cost": 1123.14, "conv": 227, "cr": 89.02, "cpa": 4.95}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "07.06.2026", "shows": 2947, "clicks": 58, "cost": 329.35, "conv": 10, "cr": 17.24, "cpa": 32.94}, {"c": "Летние будни", "id": "709365069", "d": "08.06.2026", "shows": 8404, "clicks": 254, "cost": 1063.18, "conv": 220, "cr": 86.61, "cpa": 4.83}, {"c": "Летние будни", "id": "709365069", "d": "09.06.2026", "shows": 5820, "clicks": 196, "cost": 834.95, "conv": 173, "cr": 88.27, "cpa": 4.83}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "09.06.2026", "shows": 12907, "clicks": 168, "cost": 784.75, "conv": 33, "cr": 19.64, "cpa": 23.78}, {"c": "Летние будни", "id": "709365069", "d": "10.06.2026", "shows": 3113, "clicks": 141, "cost": 594.27, "conv": 126, "cr": 89.36, "cpa": 4.72}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "10.06.2026", "shows": 3772, "clicks": 55, "cost": 241.53, "conv": 6, "cr": 10.91, "cpa": 40.26}, {"c": "Летние будни", "id": "709365069", "d": "11.06.2026", "shows": 4270, "clicks": 165, "cost": 592.77, "conv": 142, "cr": 86.06, "cpa": 4.17}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "11.06.2026", "shows": 5040, "clicks": 80, "cost": 317.03, "conv": 13, "cr": 16.25, "cpa": 24.39}, {"c": "Летние будни", "id": "709365069", "d": "12.06.2026", "shows": 4281, "clicks": 198, "cost": 826.98, "conv": 173, "cr": 87.37, "cpa": 4.78}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "12.06.2026", "shows": 5758, "clicks": 126, "cost": 591.61, "conv": 19, "cr": 15.08, "cpa": 31.14}, {"c": "Летние будни", "id": "709365069", "d": "13.06.2026", "shows": 6681, "clicks": 279, "cost": 1016.65, "conv": 220, "cr": 78.85, "cpa": 4.62}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "13.06.2026", "shows": 6581, "clicks": 177, "cost": 705.36, "conv": 19, "cr": 10.73, "cpa": 37.12}, {"c": "Летние будни", "id": "709365069", "d": "14.06.2026", "shows": 11033, "clicks": 386, "cost": 1570.69, "conv": 323, "cr": 83.68, "cpa": 4.86}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "14.06.2026", "shows": 7877, "clicks": 181, "cost": 859.71, "conv": 18, "cr": 9.94, "cpa": 47.76}, {"c": "Летние будни", "id": "709365069", "d": "15.06.2026", "shows": 5047, "clicks": 219, "cost": 686.28, "conv": 198, "cr": 90.41, "cpa": 3.47}, {"c": "Летние будни", "id": "709365069", "d": "16.06.2026", "shows": 4619, "clicks": 207, "cost": 648.15, "conv": 142, "cr": 68.6, "cpa": 4.56}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "16.06.2026", "shows": 2133, "clicks": 40, "cost": 172.82, "conv": 4, "cr": 10.0, "cpa": 43.21}, {"c": "Летние будни", "id": "709365069", "d": "17.06.2026", "shows": 5386, "clicks": 226, "cost": 787.08, "conv": 190, "cr": 84.07, "cpa": 4.14}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "17.06.2026", "shows": 7435, "clicks": 110, "cost": 526.76, "conv": 21, "cr": 19.09, "cpa": 25.08}, {"c": "Летние будни", "id": "709365069", "d": "18.06.2026", "shows": 9071, "clicks": 287, "cost": 877.46, "conv": 254, "cr": 88.5, "cpa": 3.45}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "18.06.2026", "shows": 7474, "clicks": 142, "cost": 508.23, "conv": 19, "cr": 13.38, "cpa": 26.75}, {"c": "Летние будни", "id": "709365069", "d": "19.06.2026", "shows": 10020, "clicks": 309, "cost": 1079.06, "conv": 270, "cr": 87.38, "cpa": 4.0}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "19.06.2026", "shows": 7039, "clicks": 138, "cost": 604.09, "conv": 19, "cr": 13.77, "cpa": 31.79}, {"c": "Летние будни", "id": "709365069", "d": "20.06.2026", "shows": 7943, "clicks": 282, "cost": 993.23, "conv": 233, "cr": 82.62, "cpa": 4.26}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "20.06.2026", "shows": 5324, "clicks": 140, "cost": 650.92, "conv": 17, "cr": 12.14, "cpa": 38.29}, {"c": "Летние будни", "id": "709365069", "d": "21.06.2026", "shows": 9383, "clicks": 353, "cost": 1428.74, "conv": 295, "cr": 83.57, "cpa": 4.84}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "21.06.2026", "shows": 8261, "clicks": 307, "cost": 1037.17, "conv": 20, "cr": 6.51, "cpa": 51.86}, {"c": "Летние будни", "id": "709365069", "d": "22.06.2026", "shows": 11036, "clicks": 322, "cost": 971.05, "conv": 265, "cr": 82.3, "cpa": 3.66}, {"c": "Летние будни", "id": "709365069", "d": "23.06.2026", "shows": 7825, "clicks": 255, "cost": 741.65, "conv": 217, "cr": 85.1, "cpa": 3.42}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "23.06.2026", "shows": 3053, "clicks": 64, "cost": 293.53, "conv": 8, "cr": 12.5, "cpa": 36.69}, {"c": "Летние будни", "id": "709365069", "d": "24.06.2026", "shows": 9274, "clicks": 288, "cost": 819.77, "conv": 236, "cr": 81.94, "cpa": 3.47}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "24.06.2026", "shows": 4632, "clicks": 90, "cost": 436.47, "conv": 15, "cr": 16.67, "cpa": 29.1}, {"c": "Летние будни", "id": "709365069", "d": "25.06.2026", "shows": 9626, "clicks": 338, "cost": 1080.0, "conv": 259, "cr": 76.63, "cpa": 4.17}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "25.06.2026", "shows": 8169, "clicks": 130, "cost": 641.6, "conv": 32, "cr": 24.62, "cpa": 20.05}, {"c": "Летние будни", "id": "709365069", "d": "26.06.2026", "shows": 8624, "clicks": 213, "cost": 709.04, "conv": 196, "cr": 92.02, "cpa": 3.62}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "26.06.2026", "shows": 5000, "clicks": 94, "cost": 451.99, "conv": 21, "cr": 22.34, "cpa": 21.52}, {"c": "Летние будни", "id": "709365069", "d": "27.06.2026", "shows": 9547, "clicks": 298, "cost": 1017.49, "conv": 245, "cr": 82.21, "cpa": 4.15}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "27.06.2026", "shows": 4341, "clicks": 111, "cost": 609.28, "conv": 9, "cr": 8.11, "cpa": 67.7}, {"c": "Летние будни", "id": "709365069", "d": "28.06.2026", "shows": 890, "clicks": 28, "cost": 104.63, "conv": 16, "cr": 57.14, "cpa": 6.54}, {"c": "Ресторан с рыбалкой_2", "id": "710234973", "d": "28.06.2026", "shows": 612, "clicks": 13, "cost": 96.78, "conv": 0, "cr": 0.0, "cpa": null}];
-const COLORS = {"Летние будни":"#3A86FF","Ресторан с рыбалкой_2":"#F4A259"};
-const CAMPS = ["Летние будни","Ресторан с рыбалкой_2"];
+let DATA=[], CAMPS=[], COLORS={}, UPDATED="";
 let curCamp="all", curMetric="cost";
-
+let base={}, lastDate="";
+const PALETTE=["#3A86FF","#F4A259","#4CAF7D","#B57BFF","#E8B04B","#E2603F","#5BC0EB"];
 const METRICS=[["cost","Расход"],["conv","Конверсии"],["cpa","CPA"],["clicks","Клики"],["shows","Показы"],["cr","CR"]];
+
 const fmtInt=n=>Math.round(n).toLocaleString("ru-RU");
 const fmtMoney=n=>n.toLocaleString("ru-RU",{maximumFractionDigits:0});
 const fmt2=n=>n.toLocaleString("ru-RU",{minimumFractionDigits:2,maximumFractionDigits:2});
-
 const rowsFor=c=>c==="all"?DATA:DATA.filter(r=>r.c===c);
 const dates=()=>[...new Set(DATA.map(r=>r.d))];
-const lastDate=dates().slice(-1)[0];
+const median=a=>{a=a.slice().sort((x,y)=>x-y);return a.length?a[Math.floor(a.length/2)]:null};
 
-// ---- per-campaign baselines (median over full days)
-function median(a){a=a.slice().sort((x,y)=>x-y);return a.length?a[Math.floor(a.length/2)]:null}
-const base={};
-CAMPS.forEach(c=>{
-  const rs=DATA.filter(r=>r.c===c);
-  base[c]={
-    cpa:median(rs.filter(r=>r.cpa!=null).map(r=>r.cpa)),
-    cost:median(rs.map(r=>r.cost)),
-    cr:median(rs.filter(r=>r.cr!=null).map(r=>r.cr)),
-    shows:median(rs.map(r=>r.shows)),
-  };
-});
-// partial-day flag: last date with shows far below the campaign baseline
-const isPartial=r=> r.d===lastDate && base[r.c].shows && r.shows < 0.4*base[r.c].shows;
+function deriveMeta(){
+  const cost={};
+  DATA.forEach(r=>{cost[r.c]=(cost[r.c]||0)+r.cost});
+  CAMPS=Object.keys(cost).sort((a,b)=>cost[b]-cost[a]);
+  COLORS={}; CAMPS.forEach((c,i)=>COLORS[c]=PALETTE[i%PALETTE.length]);
+}
+function recomputeBase(){
+  base={};
+  CAMPS.forEach(c=>{
+    const rs=DATA.filter(r=>r.c===c);
+    base[c]={
+      cpa:median(rs.filter(r=>r.cpa!=null).map(r=>r.cpa)),
+      cost:median(rs.map(r=>r.cost)),
+      cr:median(rs.filter(r=>r.cr!=null).map(r=>r.cr)),
+      shows:median(rs.map(r=>r.shows)),
+    };
+  });
+  lastDate=dates().slice(-1)[0];
+}
+const isPartial=r=> r.d===lastDate && base[r.c] && base[r.c].shows && r.shows < 0.4*base[r.c].shows;
 
-// ---- alert engine
 function buildAlerts(camp){
   const rs=(camp==="all"?DATA:DATA.filter(r=>r.c===camp));
   const al=[];
   rs.forEach(r=>{
-    const b=base[r.c];
-    if(isPartial(r)){
-      al.push({d:r.d,c:r.c,sev:"info",t:"День ещё неполный",
-        det:`Данные за ${r.d.slice(0,5)} ещё докручиваются, цифры подрастут.`});
-      return;
-    }
-    if(r.cpa!=null&&b.cpa){
-      const k=r.cpa/b.cpa;
-      if(k>1.5)al.push({d:r.d,c:r.c,sev:"red",t:`CPA ${fmt2(r.cpa)} ₽`,
-        det:`В ${fmt2(k)}× дороже обычного дня (медиана ${fmt2(b.cpa)} ₽).`});
-      else if(k>1.2)al.push({d:r.d,c:r.c,sev:"amber",t:`CPA ${fmt2(r.cpa)} ₽`,
-        det:`Выше нормы (медиана ${fmt2(b.cpa)} ₽).`});
-    }
-    if(r.conv===0&&b.cost&&r.cost>0.3*b.cost)
-      al.push({d:r.d,c:r.c,sev:"red",t:"День без конверсий",
-        det:`Потрачено ${fmt2(r.cost)} ₽, ноль конверсий.`});
-    if(b.cost&&r.cost>1.8*b.cost)
-      al.push({d:r.d,c:r.c,sev:"amber",t:`Скачок расхода ${fmtMoney(r.cost)} ₽`,
-        det:`Заметно выше обычного дня (медиана ${fmtMoney(b.cost)} ₽).`});
-    if(r.cr!=null&&b.cr&&r.clicks>10&&r.cr<0.5*b.cr)
-      al.push({d:r.d,c:r.c,sev:"amber",t:`CR просел до ${fmt2(r.cr)}%`,
-        det:`Почти вдвое ниже обычного (медиана ${fmt2(b.cr)}%).`});
+    const b=base[r.c]; if(!b)return;
+    if(isPartial(r)){al.push({d:r.d,c:r.c,sev:"info",t:"День ещё неполный",
+      det:`Данные за ${r.d.slice(0,5)} ещё докручиваются, цифры подрастут.`});return;}
+    if(r.cpa!=null&&b.cpa){const k=r.cpa/b.cpa;
+      if(k>1.5)al.push({d:r.d,c:r.c,sev:"red",t:`CPA ${fmt2(r.cpa)} ₽`,det:`В ${fmt2(k)}× дороже обычного дня (медиана ${fmt2(b.cpa)} ₽).`});
+      else if(k>1.2)al.push({d:r.d,c:r.c,sev:"amber",t:`CPA ${fmt2(r.cpa)} ₽`,det:`Выше нормы (медиана ${fmt2(b.cpa)} ₽).`});}
+    if(r.conv===0&&b.cost&&r.cost>0.3*b.cost)al.push({d:r.d,c:r.c,sev:"red",t:"День без конверсий",det:`Потрачено ${fmt2(r.cost)} ₽, ноль конверсий.`});
+    if(b.cost&&r.cost>1.8*b.cost)al.push({d:r.d,c:r.c,sev:"amber",t:`Скачок расхода ${fmtMoney(r.cost)} ₽`,det:`Заметно выше обычного дня (медиана ${fmtMoney(b.cost)} ₽).`});
+    if(r.cr!=null&&b.cr&&r.clicks>10&&r.cr<0.5*b.cr)al.push({d:r.d,c:r.c,sev:"amber",t:`CR просел до ${fmt2(r.cr)}%`,det:`Почти вдвое ниже обычного (медиана ${fmt2(b.cr)}%).`});
   });
   const ord={red:0,amber:1,info:2,ok:3};
   al.sort((a,b)=> a.d<b.d?1:a.d>b.d?-1: ord[a.sev]-ord[b.sev]);
   return al.slice(0,9);
 }
 
-// ---- period
-(function(){const ds=dates();document.getElementById("periodLabel").textContent=ds[0]+" — "+ds[ds.length-1]})();
+function buildLayout(){
+  document.getElementById("app").innerHTML=`
+    <div class="filters" id="filters"></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="panel"><div class="panel-head"><h2>Тревоги <span class="cnt" id="alertCnt"></span></h2></div><div class="alerts" id="alerts"></div></div>
+    <div class="panel"><div class="panel-head"><h2>По дням</h2><div class="seg" id="metricSeg"></div></div><div class="chart-wrap"><canvas id="chart"></canvas></div></div>
+    <div class="cmp" id="cmp"></div>
+    <div class="panel"><div class="panel-head"><h2>Дневная таблица</h2></div>
+      <div class="tbl-scroll"><table><thead><tr>
+        <th>Кампания</th><th>День</th><th>Показы</th><th>Клики</th><th>Расход ₽</th><th>Конв.</th><th>CR %</th><th>CPA ₽</th>
+      </tr></thead><tbody id="tbody"></tbody></table></div>
+      <div class="note">CPA подсвечивается относительно медианы своей кампании: красным — заметно дороже обычного дня, зелёным — дешевле.</div>
+    </div>`;
+}
 
-// ---- filters
-const fWrap=document.getElementById("filters");
-[["all","Все кампании"],...CAMPS.map(c=>[c,c])].forEach(([val,label],i)=>{
-  const b=document.createElement("button");
-  b.className="chip"+(val==="all"?" on":"")+(i===2?" warm":"");
-  b.textContent=label;
-  b.onclick=()=>{curCamp=val;[...fWrap.children].forEach(x=>x.classList.remove("on"));b.classList.add("on");renderAll()};
-  fWrap.appendChild(b);
-});
-
-// ---- metric seg
-const seg=document.getElementById("metricSeg");
-METRICS.forEach(([key,label])=>{
-  const b=document.createElement("button");
-  b.className=key==="cost"?"on":"";b.textContent=label;
-  b.onclick=()=>{curMetric=key;[...seg.children].forEach(x=>x.classList.remove("on"));b.classList.add("on");renderChart()};
-  seg.appendChild(b);
-});
+function buildFilters(){
+  const f=document.getElementById("filters");
+  const opts=[["all","Все кампании"],...CAMPS.map(c=>[c,c])];
+  f.innerHTML="";
+  opts.forEach(([val,label])=>{
+    const b=document.createElement("button");
+    b.className="chip"+(val===curCamp?" on":"");b.textContent=label;
+    b.onclick=()=>{curCamp=val;[...f.children].forEach(x=>x.classList.remove("on"));b.classList.add("on");renderAll()};
+    f.appendChild(b);
+  });
+}
+function buildSeg(){
+  const s=document.getElementById("metricSeg");s.innerHTML="";
+  METRICS.forEach(([key,label])=>{
+    const b=document.createElement("button");
+    b.className=key===curMetric?"on":"";b.textContent=label;
+    b.onclick=()=>{curMetric=key;[...s.children].forEach(x=>x.classList.remove("on"));b.classList.add("on");renderChart()};
+    s.appendChild(b);
+  });
+}
 
 function renderKpis(){
   const rs=rowsFor(curCamp);const sum=k=>rs.reduce((a,r)=>a+(r[k]||0),0);
@@ -233,21 +205,16 @@ function renderKpis(){
 }
 
 function renderAlerts(){
-  const al=buildAlerts(curCamp);
-  const box=document.getElementById("alerts");
+  const al=buildAlerts(curCamp);const box=document.getElementById("alerts");
   const reds=al.filter(a=>a.sev==="red").length;
   document.getElementById("alertCnt").textContent=al.length?`(${al.length}${reds?", "+reds+" срочно":""})`:"";
   const ICO={red:"●",amber:"●",info:"○",ok:"✓"};
-  if(!al.length){box.innerHTML=`<div class="alert ok"><span class="ico" style="color:var(--green)">✓</span>
-    <div class="body"><div class="t">Всё спокойно</div><div class="d">Аномалий за период не нашлось.</div></div></div>`;return}
+  if(!al.length){box.innerHTML=`<div class="alert ok"><span class="ico" style="color:var(--green)">✓</span><div class="body"><div class="t">Всё спокойно</div><div class="d">Аномалий за период не нашлось.</div></div></div>`;return}
   box.innerHTML=al.map(a=>{
     const col=a.sev==="red"?"var(--red)":a.sev==="amber"?"var(--amber)":"var(--accent)";
-    const dot=a.c==="Летние будни"?"dot-blue":"dot-warm";
-    return `<div class="alert ${a.sev}">
-      <span class="ico" style="color:${col}">${ICO[a.sev]}</span>
+    return `<div class="alert ${a.sev}"><span class="ico" style="color:${col}">${ICO[a.sev]}</span>
       <div class="body"><div class="t">${a.t}</div><div class="d">${a.det}</div></div>
-      <div class="meta"><span class="dot ${dot}"></span>${a.c}<br>${a.d.slice(0,5)}</div>
-    </div>`;
+      <div class="meta"><span class="dot" style="background:${COLORS[a.c]}"></span>${a.c}<br>${a.d.slice(0,5)}</div></div>`;
   }).join("");
 }
 
@@ -258,7 +225,7 @@ function renderChart(){
   camps.forEach(c=>{
     const byDate={};DATA.filter(r=>r.c===c).forEach(r=>byDate[r.d]=r[curMetric]);
     series.push({label:c,data:ds.map(d=>byDate[d]??null),borderColor:COLORS[c],
-      backgroundColor:COLORS[c]+"22",borderWidth:2,tension:.3,pointRadius:2,pointHoverRadius:5,spanGaps:true,fill:camps.length===1});
+      backgroundColor:COLORS[c]+"22",borderWidth:2,tension:.3,pointRadius:1.5,pointHoverRadius:5,spanGaps:true,fill:camps.length===1});
   });
   const cfg={type:"line",data:{labels:ds.map(d=>d.slice(0,5)),datasets:series},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
@@ -271,12 +238,12 @@ function renderChart(){
 }
 
 function renderCmp(){
-  const totalCost=DATA.reduce((a,r)=>a+r.cost,0);
-  document.getElementById("cmp").innerHTML=CAMPS.map((c,i)=>{
+  const totalCost=DATA.reduce((a,r)=>a+r.cost,0)||1;
+  document.getElementById("cmp").innerHTML=CAMPS.slice(0,4).map(c=>{
     const rs=DATA.filter(r=>r.c===c);const sum=k=>rs.reduce((a,r)=>a+(r[k]||0),0);
     const cost=sum("cost"),conv=sum("conv"),clicks=sum("clicks");
     const cpa=conv?cost/conv:null,cr=clicks?conv/clicks*100:null,share=cost/totalCost*100;
-    return `<div class="card${i===1?" warm":""}"><div class="nm">${c}</div>
+    return `<div class="card" style="border-left-color:${COLORS[c]}"><div class="nm">${c}</div>
       <div class="row"><span>Расход</span><b>${fmtMoney(cost)} ₽ <span style="color:var(--muted)">(${fmt2(share)}%)</span></b></div>
       <div class="row"><span>Конверсии</span><b>${fmtInt(conv)}</b></div>
       <div class="row"><span>CPA</span><b>${cpa==null?"—":fmt2(cpa)+" ₽"}</b></div>
@@ -284,21 +251,39 @@ function renderCmp(){
   }).join("");
 }
 
-function cpaClass(r){if(r.cpa==null||!base[r.c].cpa)return"";const k=r.cpa/base[r.c].cpa;
+function cpaClass(r){if(r.cpa==null||!base[r.c]||!base[r.c].cpa)return"";const k=r.cpa/base[r.c].cpa;
   if(k>1.5)return"cpa-r";if(k>1.15)return"cpa-a";if(k<0.85)return"cpa-g";return""}
 function renderTable(){
   const rs=rowsFor(curCamp).slice().reverse();
-  document.getElementById("tbody").innerHTML=rs.map(r=>{
-    const dot=r.c==="Летние будни"?"dot-blue":"dot-warm";
-    return `<tr><td><span class="tag ${dot}"></span>${r.c}</td><td>${r.d.slice(0,5)}</td>
+  document.getElementById("tbody").innerHTML=rs.map(r=>
+    `<tr><td><span class="tag" style="background:${COLORS[r.c]}"></span>${r.c}</td><td>${r.d.slice(0,5)}</td>
       <td>${fmtInt(r.shows)}</td><td>${fmtInt(r.clicks)}</td><td>${fmt2(r.cost)}</td>
       <td>${fmtInt(r.conv)}</td><td>${r.cr==null?"—":fmt2(r.cr)}</td>
-      <td class="${cpaClass(r)}">${r.cpa==null?"—":fmt2(r.cpa)}</td></tr>`;
-  }).join("");
+      <td class="${cpaClass(r)}">${r.cpa==null?"—":fmt2(r.cpa)}</td></tr>`).join("");
 }
 
+function setPeriod(){
+  const ds=dates();
+  document.getElementById("periodLabel").textContent=ds.length?ds[0]+" — "+ds[ds.length-1]:"—";
+  document.getElementById("updLabel").textContent=UPDATED?"обновлено "+UPDATED:"";
+}
 function renderAll(){renderKpis();renderAlerts();renderChart();renderTable()}
-renderCmp();renderAll();
+
+async function init(){
+  try{
+    const res=await fetch("data.json?_="+Date.now());
+    if(!res.ok)throw new Error("HTTP "+res.status);
+    const payload=await res.json();
+    DATA=payload.rows||[];UPDATED=payload.updated||"";
+  }catch(e){
+    document.getElementById("app").innerHTML=`<div class="state">Не удалось загрузить данные (${e}).<br>Если открываешь файл локально двойным кликом — так не сработает, data.json грузится только с сайта на GitHub Pages.</div>`;
+    return;
+  }
+  if(!DATA.length){document.getElementById("app").innerHTML=`<div class="state">Данных пока нет. Дождись первого запуска обновления.</div>`;return;}
+  deriveMeta();recomputeBase();
+  buildLayout();setPeriod();buildFilters();buildSeg();renderCmp();renderAll();
+}
+init();
 </script>
 </body>
 </html>
